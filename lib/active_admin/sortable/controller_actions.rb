@@ -12,6 +12,7 @@ module ActiveAdmin::Sortable
                              :max_levels => 0,
                              :protect_root => false,
                              :collapsible => false, #hides +/- buttons
+                             :sti => false, # Using single-table inheritance?
                              :start_collapsed => false
 
       # BAD BAD BAD FIXME: don't pollute original class
@@ -23,8 +24,10 @@ module ActiveAdmin::Sortable
       collection_action :sort, :method => :post do
         resource_name = active_admin_config.resource_name.to_s.underscore.parameterize('_')
 
+        sortable_klass = options[:sti] ? resource_class.base_class : resource_class
+
         records = params[resource_name].inject({}) do |res, (resource, parent_resource)|
-          res[resource_class.find(resource)] = resource_class.find(parent_resource) rescue nil
+          res[sortable_klass.find(resource)] = sortable_klass.find(parent_resource) rescue nil
           res
         end
         errors = []
