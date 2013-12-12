@@ -20,6 +20,7 @@ window.ActiveAdminSortableEvent = do ->
   }
 
 $ ->
+
   $('.disclose').bind 'click', (event) ->
     $(this).closest('li').toggleClass('mjs-nestedSortable-collapsed').toggleClass('mjs-nestedSortable-expanded')
 
@@ -42,6 +43,9 @@ $ ->
           ActiveAdminSortableEvent.trigger('ajaxFail')
 
     .disableSelection()
+
+  status_tag = (message, status_class = 'error') ->
+    "<span class='status_tag #{status_class}'>#{message}</span>"
 
   $(".index_as_sortable [data-sortable-type]").each ->
     $this = $(@)
@@ -71,21 +75,42 @@ $ ->
       toleranceElement: '> div'
       isTree: true
       startCollapsed: $this.data("start-collapsed")
-      update: ->
+      update: (event, ui) ->
         $this.nestedSortable("disable")
+
+        $this.find('.status_message').empty()
+
         $.ajax
           url: $this.data("sortable-url")
           type: "post"
           data: $this.nestedSortable("serialize")
+          dataType: 'json'
+          beforeSend: (xhr) ->
+            # Avoid 'no element found' error on HTTP 204 in Firefox.
+            xhr.overrideMimeType 'text/plain; charset=x-user-defined'
         .always ->
           $this.find('.item').each (index) ->
+
             if index % 2
               $(this).removeClass('odd').addClass('even')
             else
               $(this).removeClass('even').addClass('odd')
+
           $this.nestedSortable("enable")
+
           ActiveAdminSortableEvent.trigger('ajaxAlways')
         .done ->
           ActiveAdminSortableEvent.trigger('ajaxDone')
-        .fail ->
+        .fail (xhr) ->
+          response_text = xhr.responseText
+
+          status_message_content = if response_text[0] == '['
+            $.map($.parseJSON(response_text), status_tag).join("")
+          else
+            status_tag response_text
+
+          $(ui.item).find('.status_message').html status_message_content
+
+          $this.sortable('cancel')
+
           ActiveAdminSortableEvent.trigger('ajaxFail')

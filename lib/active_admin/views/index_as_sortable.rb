@@ -116,8 +116,12 @@ module ActiveAdmin
             h3 :class => "cell left" do
               call_method_or_proc_on(item, @label)
             end
+
             div :class => "cell right" do
               build_actions(item)
+            end
+
+            div :class => "cell right status_message" do
             end
           end
 

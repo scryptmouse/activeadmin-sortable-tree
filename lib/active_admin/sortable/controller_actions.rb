@@ -31,7 +31,7 @@ module ActiveAdmin::Sortable
           res
         end
 
-        errors = []
+        errors = {}
 
         ActiveRecord::Base.transaction do
           records.each_with_index do |(record, parent_record), position|
@@ -41,19 +41,29 @@ module ActiveAdmin::Sortable
               record.send "#{options[:parent_method]}=", parent_record
             end
 
-            errors << {record.id => record.errors} if !record.save
+            unless record.save
+              record_name   = view_context.display_name(record) || record.id
+
+              errors[record_name] = record.errors.full_messages.to_sentence
+            end
           end
         end
 
         if errors.empty?
-          head 204
+           head 204
         else
+          if errors.length == 1
+            errors = errors.values.first
+          else
+            errors = errors.map do |record_name, message|
+              "#{record_name}: #{message}"
+            end
+          end
+
           render json: errors, status: 422
         end
       end
-
     end
-
   end
 
   ::ActiveAdmin::ResourceDSL.send(:include, ControllerActions)
