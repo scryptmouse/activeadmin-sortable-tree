@@ -1,3 +1,4 @@
+#= require jquery.ui.sortable
 #= require jquery.mjs.nestedSortable
 
 window.ActiveAdminSortableEvent = do ->
@@ -19,6 +20,9 @@ window.ActiveAdminSortableEvent = do ->
   }
 
 $ ->
+  $('.disclose').bind 'click', (event) ->
+    $(this).closest('li').toggleClass('mjs-nestedSortable-collapsed').toggleClass('mjs-nestedSortable-expanded')
+
   $("[data-sortable-type=plain]").each ->
     $this = $(@)
     $this.sortable
@@ -65,6 +69,8 @@ $ ->
       # prevent drag flickers
       tolerance: 'pointer'
       toleranceElement: '> div'
+      isTree: true
+      startCollapsed: $this.data("start-collapsed")
       update: ->
         $this.nestedSortable("disable")
         $.ajax

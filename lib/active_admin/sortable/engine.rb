@@ -5,7 +5,7 @@ module ActiveAdmin
     class Engine < ::Rails::Engine
       engine_name 'activeadmin_sortable_tree'
 
-      initializer "Rails precompile hook" do |app|
+      initializer "Rails precompile hook", group: :all do |app|
         app.config.assets.precompile += [ "active_admin/sortable.css",
                                           "active_admin/sortable.js" ]
       end
