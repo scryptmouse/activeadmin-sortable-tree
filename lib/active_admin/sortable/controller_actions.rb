@@ -38,7 +38,7 @@ module ActiveAdmin::Sortable
           end
         end
         if errors.empty?
-          head 200
+          head 204
         else
           render json: errors, status: 422
         end
